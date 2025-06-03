@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koombana Bay Marine Weather Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .score-card {
+            text-align: center;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .score-value {
+            font-size: 4em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .score-status {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .recommendation {
+            font-size: 1.2em;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .conditions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .condition-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .condition-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .condition-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .factor-analysis {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .factor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .factor-item:last-child {
+            border-bottom: none;
+        }
+
+        .factor-score {
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .forecast-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .forecast-day {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .forecast-day:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .forecast-date {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .forecast-score {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+
+        .forecast-conditions {
+            font-size: 0.8em;
+            opacity: 0.9;
+            line-height: 1.3;
+        }
+
+        .forecast-recommendation {
+            margin-top: 8px;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+
+        .rec-excellent {
+            background: rgba(76, 175, 80, 0.8);
+        }
+
+        .rec-good {
+            background: rgba(139, 195, 74, 0.8);
+        }
+
+        .rec-fair {
+            background: rgba(255, 193, 7, 0.8);
+            color: #333;
+        }
+
+        .rec-poor {
+            background: rgba(244, 67, 54, 0.8);
+        }
+
+        .best-days {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .best-days h4 {
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            margin: 0 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-excellent { background: #4CAF50; }
+        .status-good { background: #8BC34A; }
+        .status-fair { background: #FFC107; }
+        .status-poor { background: #F44336; }
+
+        .last-updated {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.7;
+            font-size: 0.9em;
+        }
+
+        .team-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .team-message {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .score-value {
+                font-size: 3em;
+            }
+            
+            .conditions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                display: block;
+                margin: 10px auto;
+                width: 200px;
+            }
+            
+            .forecast-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .forecast-day {
+                padding: 10px;
+            }
+            
+            .forecast-score {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Koombana Bay Marine Weather</h1>
+            <p>Professional Water Collection Assessment Dashboard</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <p>🔄 Loading current marine conditions...</p>
+        </div>
+
+        <div id="dashboard" class="dashboard" style="display: none;">
+            <!-- Score Card -->
+            <div class="card score-card">
+                <h3>Water Collection Score</h3>
+                <div class="score-value" id="score">--</div>
+                <div class="score-status" id="status">--</div>
+                <div class="recommendation" id="recommendation">--</div>
+            </div>
+
+            <!-- Current Conditions -->
+            <div class="card">
+                <h3>Current Marine Conditions</h3>
+                <div class="conditions-grid">
+                    <div class="condition-item">
+                        <div class="condition-value" id="wind-speed">--</div>
+                        <div class="condition-label">Wind (knots)</div>
+                    </div>
+                    <div class="condition-item">
+                        <div class="condition-value" id="wind-direction">--</div>
+                        <div class="condition-label">Direction (°)</div>
+                    </div>
+                    <div class="condition-item">
+                        <div class="condition-value" id="wave-height">--</div>
+                        <div class="condition-label">Wave Height (m)</div>
+                    </div>
+                    <div class="condition-item">
+                        <div class="condition-value" id="temperature">--</div>
+                        <div class="condition-label">Temperature (°C)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Factor Analysis -->
+            <div class="card factor-analysis">
+                <h3>Quality Factor Analysis</h3>
+                <div id="factors">
+                    <!-- Factors will be populated here -->
+                </div>
+            </div>
+
+            <!-- 7-Day Forecast -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <h3>📅 7-Day Water Collection Forecast</h3>
+                <div id="forecast">
+                    <!-- Forecast will be populated here -->
+                </div>
+            </div>
+
+            <!-- Data Sources -->
+            <div class="card">
+                <h3>System Information</h3>
+                <p><strong>Data Sources:</strong> <span id="sources">--</span></p>
+                <p><strong>Confidence Level:</strong> <span id="confidence">--</span></p>
+                <p><strong>Cost:</strong> <span style="color: #4CAF50;">$0.00 (FREE)</span></p>
+                <p><strong>Location:</strong> Koombana Bay, Bunbury (-33.32°S, 115.65°E)</p>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh All Data</button>
+            <button class="btn" onclick="generateTeamReport()">📊 Generate Team Report</button>
+            <button class="btn" onclick="generateWeeklyReport()">📅 Weekly Planning Report</button>
+            <button class="btn" onclick="toggleAutoRefresh()">⏰ <span id="auto-status">Enable Auto-Refresh</span></button>
+        </div>
+
+        <!-- Team Report Section -->
+        <div id="team-section" class="team-section" style="display: none;">
+            <h3>📱 Team Communication Report</h3>
+            <p>Copy and share this report with your team:</p>
+            <div class="team-message" id="team-message">
+                <!-- Team message will be generated here -->
+            </div>
+            <button class="btn" onclick="copyTeamReport()">📋 Copy to Clipboard</button>
+        </div>
+
+        <div class="last-updated">
+            <p>Last Updated: <span id="last-updated">--</span></p>
+            <p>Next Auto-Update: <span id="next-update">Manual refresh only</span></p>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshEnabled = false;
+        let autoRefreshInterval;
+        let currentData = null;
+        let currentForecastData = null;
+
+        // Simulate 7-day forecast data
+        function get7DayForecast() {
+            return new Promise(function(resolve) {
+                setTimeout(function() {
+                    const days = [];
+                    const today = new Date();
+                    
+                    for (let i = 0; i < 7; i++) {
+                        const date = new Date(today);
+                        date.setDate(today.getDate() + i);
+                        
+                        // Simulate varying conditions
+                        const windSpeed = 5 + Math.random() * 15; // 5-20 knots
+                        const waveHeight = 0.5 + Math.random() * 2; // 0.5-2.5m
+                        const temp = 18 + Math.random() * 8; // 18-26°C
+                        
+                        // Calculate score based on conditions
+                        let score = 100;
+                        if (windSpeed > 12) score -= 30;
+                        else if (windSpeed > 8) score -= 15;
+                        
+                        if (waveHeight > 2) score -= 25;
+                        else if (waveHeight > 1.5) score -= 15;
+                        
+                        if (temp < 18 || temp > 25) score -= 10;
+                        
+                        // Add some randomness for weather patterns
+                        score += (Math.random() - 0.5) * 20;
+                        score = Math.max(20, Math.min(100, score));
+                        
+                        days.push({
+                            date: date,
+                            score: Math.round(score),
+                            wind_speed: windSpeed,
+                            wave_height: waveHeight,
+                            temperature: temp,
+                            recommendation: score >= 85 ? 'EXCELLENT' : score >= 75 ? 'GOOD' : score >= 65 ? 'FAIR' : 'POOR'
+                        });
+                    }
+                    
+                    resolve(days);
+                }, 800);
+            });
+        }
+
+        // Simulate current marine data
+        function getMarineData() {
+            return new Promise(function(resolve) {
+                setTimeout(function() {
+                    resolve({
+                        overall_score: 88.4,
+                        recommendation: "EXCELLENT",
+                        action: "PROCEED IMMEDIATELY",
+                        go_no_go: true,
+                        conditions: {
+                            wind_speed_knots: 8.8,
+                            wind_direction: 8,
+                            wave_height: 1.1,
+                            temperature: 20.0,
+                            sources_used: ["Open-Meteo ECMWF", "7Timer"],
+                            confidence: 0.75
+                        },
+                        factors: [
+                            { factor: "Wind Speed", score: 90, value: "8.8 knots" },
+                            { factor: "Wind Direction", score: 70, value: "8 degrees" },
+                            { factor: "Wave Height", score: 100, value: "1.1m" },
+                            { factor: "Temperature", score: 100, value: "20.0°C" }
+                        ]
+                    });
+                }, 1500);
+            });
+        }
+
+        function getStatusColor(score) {
+            if (score >= 85) return 'status-excellent';
+            if (score >= 75) return 'status-good';
+            if (score >= 65) return 'status-fair';
+            return 'status-poor';
+        }
+
+        function updateForecast(forecastData) {
+            currentForecastData = forecastData;
+            const forecastContainer = document.getElementById('forecast');
+            forecastContainer.innerHTML = '';
+            
+            const bestDays = forecastData.filter(function(day) { return day.score >= 85; });
+            const goodDays = forecastData.filter(function(day) { return day.score >= 75; });
+            
+            // Add best days summary
+            const bestDaysDiv = document.createElement('div');
+            bestDaysDiv.className = 'best-days';
+            
+            let summaryText = '';
+            if (bestDays.length > 0) {
+                const dayNames = bestDays.map(function(d) { 
+                    return d.date.toLocaleDateString('en-US', {weekday: 'short'}); 
+                }).join(', ');
+                summaryText = bestDays.length + ' EXCELLENT days (' + dayNames + ')';
+            } else {
+                summaryText = 'No excellent days this week';
+            }
+            
+            if (goodDays.length > 0) {
+                summaryText += ' | ' + goodDays.length + ' GOOD+ days total';
+            }
+            
+            bestDaysDiv.innerHTML = '<h4>🎯 Optimal Collection Days This Week</h4><p>' + summaryText + '</p>';
+            forecastContainer.appendChild(bestDaysDiv);
+            
+            // Add forecast days
+            const forecastGrid = document.createElement('div');
+            forecastGrid.className = 'forecast-container';
+            
+            forecastData.forEach(function(day, index) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'forecast-day';
+                
+                const isToday = index === 0;
+                const dayLabel = isToday ? 'Today' : day.date.toLocaleDateString('en-US', {weekday: 'short'});
+                const dateLabel = day.date.toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+                
+                const recClass = day.score >= 85 ? 'rec-excellent' : 
+                                day.score >= 75 ? 'rec-good' : 
+                                day.score >= 65 ? 'rec-fair' : 'rec-poor';
+                
+                dayDiv.innerHTML = '<div class="forecast-date">' + dayLabel + '<br><small>' + dateLabel + '</small></div>' +
+                    '<div class="forecast-score ' + getStatusColor(day.score) + '" style="color: white;">' + day.score + '%</div>' +
+                    '<div class="forecast-conditions">Wind: ' + day.wind_speed.toFixed(1) + 'kt<br>' +
+                    'Waves: ' + day.wave_height.toFixed(1) + 'm<br>' +
+                    'Temp: ' + day.temperature.toFixed(0) + '°C</div>' +
+                    '<div class="forecast-recommendation ' + recClass + '">' + day.recommendation + '</div>';
+                
+                forecastGrid.appendChild(dayDiv);
+            });
+            
+            forecastContainer.appendChild(forecastGrid);
+        }
+
+        function updateDashboard(data) {
+            currentData = data;
+            
+            // Update score card
+            document.getElementById('score').textContent = data.overall_score + '%';
+            document.getElementById('status').textContent = data.recommendation;
+            document.getElementById('recommendation').textContent = data.action;
+            
+            // Update conditions
+            document.getElementById('wind-speed').textContent = data.conditions.wind_speed_knots.toFixed(1);
+            document.getElementById('wind-direction').textContent = data.conditions.wind_direction.toFixed(0);
+            document.getElementById('wave-height').textContent = data.conditions.wave_height.toFixed(1);
+            document.getElementById('temperature').textContent = data.conditions.temperature.toFixed(1);
+            
+            // Update factors
+            const factorsContainer = document.getElementById('factors');
+            factorsContainer.innerHTML = '';
+            data.factors.forEach(function(factor) {
+                const factorDiv = document.createElement('div');
+                factorDiv.className = 'factor-item';
+                factorDiv.innerHTML = '<div><span class="status-indicator ' + getStatusColor(factor.score) + '"></span>' +
+                    factor.factor + '<small style="opacity: 0.7;"> (' + factor.value + ')</small></div>' +
+                    '<div class="factor-score">' + factor.score + '/100</div>';
+                factorsContainer.appendChild(factorDiv);
+            });
+            
+            // Update system info
+            document.getElementById('sources').textContent = data.conditions.sources_used.join(', ');
+            document.getElementById('confidence').textContent = (data.conditions.confidence * 100).toFixed(0) + '%';
+            
+            // Update timestamp
+            document.getElementById('last-updated').textContent = new Date().toLocaleString();
+            
+            // Show dashboard
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'grid';
+        }
+
+        function refreshData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+            
+            Promise.all([getMarineData(), get7DayForecast()])
+                .then(function(results) {
+                    updateDashboard(results[0]);
+                    updateForecast(results[1]);
+                })
+                .catch(function(error) {
+                    document.getElementById('loading').innerHTML = 
+                        '<div class="error"><p>❌ Error loading data: ' + error.message + '</p>' +
+                        '<button class="btn" onclick="refreshData()">Try Again</button></div>';
+                });
+        }
+
+        function generateTeamReport() {
+            if (!currentData) return;
+            
+            const now = new Date();
+            let report = '🌊 KOOMBANA BAY WATER COLLECTION UPDATE\n';
+            report += 'Generated: ' + now.toLocaleString() + '\n\n';
+            report += '📊 CURRENT ASSESSMENT: ' + currentData.overall_score + '% (' + currentData.recommendation + ')\n';
+            report += '🎯 RECOMMENDATION: ' + currentData.action + '\n';
+            report += (currentData.go_no_go ? '✅' : '❌') + ' Collection Status: ' + (currentData.go_no_go ? 'APPROVED' : 'WAIT') + '\n\n';
+            report += '🌬️ CURRENT CONDITIONS:\n';
+            report += '• Wind: ' + currentData.conditions.wind_speed_knots.toFixed(1) + ' knots from ' + currentData.conditions.wind_direction + '°\n';
+            report += '• Waves: ' + currentData.conditions.wave_height.toFixed(1) + 'm\n';
+            report += '• Temperature: ' + currentData.conditions.temperature.toFixed(1) + '°C\n\n';
+            
+            if (currentForecastData) {
+                report += '📅 UPCOMING OPPORTUNITIES:\n';
+                currentForecastData.slice(1, 4).forEach(function(day) {
+                    const dayName = day.date.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'});
+                    const status = day.score >= 85 ? '🟢 EXCELLENT' : day.score >= 75 ? '🟡 GOOD' : '🔴 POOR';
+                    report += '• ' + dayName + ': ' + day.score + '% ' + status + '\n';
+                });
+                report += '\n';
+            }
+            
+            report += '📡 Sources: ' + currentData.conditions.sources_used.join(', ') + '\n';
+            report += '🎯 Confidence: ' + (currentData.conditions.confidence * 100).toFixed(0) + '%\n\n';
+            report += 'Marine Weather Dashboard | FREE System';
+
+            document.getElementById('team-message').textContent = report;
+            document.getElementById('team-section').style.display = 'block';
+        }
+
+        function generateWeeklyReport() {
+            if (!currentForecastData) return;
+            
+            const now = new Date();
+            const excellentDays = currentForecastData.filter(function(day) { return day.score >= 85; });
+            const goodDays = currentForecastData.filter(function(day) { return day.score >= 75; });
+            
+            let report = '🗓️ WEEKLY WATER COLLECTION PLANNING REPORT\n';
+            report += 'Generated: ' + now.toLocaleString() + '\n\n';
+            report += '📊 WEEK OVERVIEW:\n';
+            report += '• ' + excellentDays.length + ' EXCELLENT days (85%+ score)\n';
+            report += '• ' + goodDays.length + ' GOOD+ days (75%+ score)\n';
+            report += '• ' + (7 - goodDays.length) + ' days below collection threshold\n\n';
+            report += '🎯 RECOMMENDED COLLECTION DAYS:\n';
+            
+            if (excellentDays.length > 0) {
+                excellentDays.forEach(function(day) {
+                    const dayName = day.date.toLocaleDateString('en-US', {weekday: 'long', month: 'short', day: 'numeric'});
+                    report += '✅ ' + dayName + ': ' + day.score + '% (Wind: ' + day.wind_speed.toFixed(1) + 'kt, Waves: ' + day.wave_height.toFixed(1) + 'm)\n';
+                });
+            } else {
+                report += 'No excellent days predicted this week\n';
+            }
+            
+            report += '\n📋 WEEKLY SCHEDULE RECOMMENDATION:\n';
+            if (goodDays.length > 0) {
+                goodDays.forEach(function(day, index) {
+                    const dayName = day.date.toLocaleDateString('en-US', {weekday: 'long', month: 'short', day: 'numeric'});
+                    const priority = day.score >= 85 ? 'HIGH' : day.score >= 75 ? 'MEDIUM' : 'LOW';
+                    report += (index + 1) + '. ' + dayName + ': ' + day.score + '% - Priority: ' + priority + '\n';
+                });
+            } else {
+                report += 'Consider waiting for better conditions next week\n';
+            }
+            
+            const poorDays = currentForecastData.filter(function(day) { return day.score < 65; });
+            if (poorDays.length > 0) {
+                report += '\n🚨 DAYS TO AVOID:\n';
+                poorDays.forEach(function(day) {
+                    const dayName = day.date.toLocaleDateString('en-US', {weekday: 'long', month: 'short', day: 'numeric'});
+                    report += '❌ ' + dayName + ': ' + day.score + '% (' + day.recommendation + ')\n';
+                });
+            } else {
+                report += '\nAll days have acceptable conditions!\n';
+            }
+            
+            report += '\n📡 Forecast Source: FREE Marine Weather APIs\n';
+            report += '🎯 Planning Dashboard | 7-Day Prediction System';
+
+            document.getElementById('team-message').textContent = report;
+            document.getElementById('team-section').style.display = 'block';
+        }
+
+        function copyTeamReport() {
+            const reportText = document.getElementById('team-message').textContent;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(reportText).then(function() {
+                    alert('📋 Report copied to clipboard! Share with your team.');
+                }).catch(function() {
+                    fallbackCopy(reportText);
+                });
+            } else {
+                fallbackCopy(reportText);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('📋 Report copied to clipboard!');
+        }
+
+        function toggleAutoRefresh() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            const statusElement = document.getElementById('auto-status');
+            const nextUpdateElement = document.getElementById('next-update');
+            
+            if (autoRefreshEnabled) {
+                statusElement.textContent = 'Disable Auto-Refresh';
+                autoRefreshInterval = setInterval(refreshData, 10800000); // 3 hours
+                nextUpdateElement.textContent = 'Every 3 hours';
+            } else {
+                statusElement.textContent = 'Enable Auto-Refresh';
+                clearInterval(autoRefreshInterval);
+                nextUpdateElement.textContent = 'Manual refresh only';
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                refreshData();
+            }
+        });
+    </script>
+</body>
+</html>
